@@ -152,4 +152,100 @@ class CeaaStaffController extends Controller
         return redirect()->route('dashboard.solicitud', $studyRequest->id)
                          ->with('success', 'La factura ha sido cargada correctamente.');
     }
+
+    /**
+     * Display metrics and survey responses for the laboratory.
+     */
+    public function metrics()
+    {
+        // 1. Survey calculations
+        $totalSurveys = StudyRequest::where('encuesta_respondida', true)->count();
+        $overallAverage = StudyRequest::where('encuesta_respondida', true)->avg('encuesta_promedio') ?? 0;
+        
+        $surveyAverages = StudyRequest::where('encuesta_respondida', true)
+            ->selectRaw('
+                AVG(encuesta_p1) as p1,
+                AVG(encuesta_p2) as p2,
+                AVG(encuesta_p3) as p3,
+                AVG(encuesta_p4) as p4,
+                AVG(encuesta_p5) as p5,
+                AVG(encuesta_p6) as p6,
+                AVG(encuesta_p7) as p7,
+                AVG(encuesta_p8) as p8,
+                AVG(encuesta_p9) as p9,
+                AVG(encuesta_p10) as p10
+            ')->first();
+
+        // 2. Study type and sample calculations
+        // Query only requests that are not rejected to get clean analytics
+        $requests = StudyRequest::where('status', '!=', 'rechazado')->get([
+            'status', 'tipos_muestra', 'normativas', 'puntos_muestreo', 'cantidad_muestras', 'updated_at'
+        ]);
+
+        $totalSamples = $requests->sum('cantidad_muestras');
+        
+        $sampleTypeCounts = [];
+        $normativaCounts = [];
+        $puntoMuestreoCounts = [];
+        $statusCounts = [];
+        $monthlyCounts = [];
+
+        foreach ($requests as $req) {
+            // Status counts
+            $statusCounts[$req->status] = ($statusCounts[$req->status] ?? 0) + 1;
+
+            // Sample types (JSON/Array cast)
+            if (is_array($req->tipos_muestra)) {
+                foreach ($req->tipos_muestra as $type) {
+                    $sampleTypeCounts[$type] = ($sampleTypeCounts[$type] ?? 0) + 1;
+                }
+            }
+
+            // Normativas (JSON/Array cast)
+            if (is_array($req->normativas)) {
+                foreach ($req->normativas as $norm) {
+                    $normativaCounts[$norm] = ($normativaCounts[$norm] ?? 0) + 1;
+                }
+            }
+
+            // Sampling points (JSON/Array cast)
+            if (is_array($req->puntos_muestreo)) {
+                foreach ($req->puntos_muestreo as $pt) {
+                    $puntoMuestreoCounts[$pt] = ($puntoMuestreoCounts[$pt] ?? 0) + 1;
+                }
+            }
+
+            // Evolution of completed studies over time (monthly)
+            if ($req->status === 'completado' && $req->updated_at) {
+                $month = $req->updated_at->format('Y-m'); // e.g. "2026-08"
+                $monthlyCounts[$month] = ($monthlyCounts[$month] ?? 0) + 1;
+            }
+        }
+
+        // Sort monthly counts chronologically
+        ksort($monthlyCounts);
+
+        // 3. Fetch recent feedback with comments or suggestions
+        $recentFeedback = StudyRequest::where('encuesta_respondida', true)
+            ->where(function($query) {
+                $query->whereNotNull('encuesta_mejoras')
+                      ->orWhereNotNull('encuesta_comentarios');
+            })
+            ->orderBy('updated_at', 'desc')
+            ->take(15)
+            ->get();
+
+        return view('dashboard.metrics', compact(
+            'totalSurveys',
+            'overallAverage',
+            'surveyAverages',
+            'totalSamples',
+            'sampleTypeCounts',
+            'normativaCounts',
+            'puntoMuestreoCounts',
+            'statusCounts',
+            'monthlyCounts',
+            'recentFeedback'
+        ));
+    }
 }

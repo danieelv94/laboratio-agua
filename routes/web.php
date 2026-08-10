@@ -28,6 +28,9 @@ Route::post('/solicitud/{reference}/encuesta', [StudyRequestController::class, '
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [CeaaStaffController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/solicitud/{studyRequest}', [CeaaStaffController::class, 'show'])->name('dashboard.solicitud');
+    Route::get('/dashboard/metricas', [CeaaStaffController::class, 'metrics'])
+        ->middleware('role:admin,laboratorio')
+        ->name('dashboard.metricas');
     
     // Actions restricted by role
     Route::post('/dashboard/solicitud/{studyRequest}/actualizar', [CeaaStaffController::class, 'update'])

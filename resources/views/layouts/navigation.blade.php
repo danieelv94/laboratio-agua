@@ -15,6 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if(Auth::user()->role === 'admin' || Auth::user()->role === 'laboratorio')
+                        <x-nav-link :href="route('dashboard.metricas')" :active="request()->routeIs('dashboard.metricas')">
+                            {{ __('Métricas') }}
+                        </x-nav-link>
+                    @endif
                     @if(Auth::user()->role === 'admin')
                         <x-nav-link :href="route('register')" :active="request()->routeIs('register')">
                             {{ __('Registrar Usuario') }}
@@ -78,6 +83,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'laboratorio')
+                <x-responsive-nav-link :href="route('dashboard.metricas')" :active="request()->routeIs('dashboard.metricas')">
+                    {{ __('Métricas') }}
+                </x-responsive-nav-link>
+            @endif
             @if(Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">
                     {{ __('Registrar Usuario') }}
