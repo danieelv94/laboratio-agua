@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Personal de la CEAA',
                 'password' => bcrypt('password'),
+                'role' => 'admin',
             ]
         );
     }

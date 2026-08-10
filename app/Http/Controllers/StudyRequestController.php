@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StudyRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class StudyRequestController extends Controller
 {
@@ -17,8 +18,11 @@ class StudyRequestController extends Controller
 
     public function store(Request $request)
     {
+        // Check if invoice is required
+        $requiereFactura = filter_var($request->input('requiere_factura'), FILTER_VALIDATE_BOOLEAN);
+
         // 1. Validate request
-        $validated = $request->validate([
+        $rules = [
             // Solicitante
             'solicitante' => 'required|string|max:255',
             'representante' => 'required|string|max:255',
@@ -35,15 +39,40 @@ class StudyRequestController extends Controller
             'normativas' => 'required|array|min:1',
             'normativa_especificar' => 'nullable|string|max:255',
 
-            // Facturación (Opcional)
-            'razon_social' => 'nullable|string|max:255',
-            'rfc' => 'nullable|string|min:12|max:13',
-            'direccion_fiscal' => 'nullable|string',
-            'uso_cfdi' => 'nullable|string|max:255',
-            'metodo_pago' => 'nullable|string|max:255',
-            'forma_pago' => 'nullable|string|max:255',
-            'ultimos_cuatro_digitos' => 'nullable|string|size:4|regex:/^[0-9]+$/',
-        ], [
+            // Facturación
+            'requiere_factura' => 'required',
+        ];
+
+        if ($requiereFactura) {
+            $rules['razon_social'] = 'required|string|max:255';
+            $rules['rfc'] = 'required|string|min:12|max:13';
+            $rules['direccion_fiscal'] = 'required|string';
+            $rules['uso_cfdi'] = 'required|string|max:255';
+            $rules['metodo_pago'] = 'required|string|max:255';
+            $rules['forma_pago'] = 'required|string|max:255';
+            $rules['ultimos_cuatro_digitos'] = 'nullable|string|size:4|regex:/^[0-9]+$/';
+        } else {
+            // Nullify these inputs to keep DB clean
+            $request->merge([
+                'razon_social' => null,
+                'rfc' => null,
+                'direccion_fiscal' => null,
+                'uso_cfdi' => null,
+                'metodo_pago' => null,
+                'forma_pago' => null,
+                'ultimos_cuatro_digitos' => null,
+            ]);
+
+            $rules['razon_social'] = 'nullable|string|max:255';
+            $rules['rfc'] = 'nullable|string|min:12|max:13';
+            $rules['direccion_fiscal'] = 'nullable|string';
+            $rules['uso_cfdi'] = 'nullable|string|max:255';
+            $rules['metodo_pago'] = 'nullable|string|max:255';
+            $rules['forma_pago'] = 'nullable|string|max:255';
+            $rules['ultimos_cuatro_digitos'] = 'nullable|string|size:4|regex:/^[0-9]+$/';
+        }
+
+        $validated = $request->validate($rules, [
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'Debe ingresar una dirección de correo electrónico válida.',
             'cantidad_muestras.required' => 'Debe ingresar la cantidad de análisis/muestras.',
@@ -53,8 +82,14 @@ class StudyRequestController extends Controller
             'normativas.required' => 'Debe seleccionar al menos una normativa aplicable.',
             'ultimos_cuatro_digitos.size' => 'Deben ser exactamente los últimos 4 dígitos de la cuenta.',
             'ultimos_cuatro_digitos.regex' => 'Los últimos 4 dígitos deben contener únicamente números.',
+            'rfc.required' => 'El RFC es obligatorio si requiere facturación.',
             'rfc.min' => 'El RFC debe tener entre 12 y 13 caracteres.',
             'rfc.max' => 'El RFC debe tener entre 12 y 13 caracteres.',
+            'razon_social.required' => 'El Nombre o Razón Social es obligatorio si requiere facturación.',
+            'direccion_fiscal.required' => 'La Dirección Fiscal es obligatoria si requiere facturación.',
+            'uso_cfdi.required' => 'El Uso de CFDI es obligatorio si requiere facturación.',
+            'metodo_pago.required' => 'El Método de Pago es obligatorio si requiere facturación.',
+            'forma_pago.required' => 'La Forma de Pago es obligatoria si requiere facturación.',
         ]);
 
         // Custom validation logic for dynamic specifies to avoid validator complexity issues
@@ -119,12 +154,26 @@ class StudyRequestController extends Controller
         return redirect()->route('solicitud.ver', ['reference' => $studyRequest->referencia_bancaria]);
     }
 
-    /**
-     * Upload the payment voucher for a study request.
-     */
     public function uploadVoucher(Request $request, $reference)
     {
         $studyRequest = StudyRequest::where('referencia_bancaria', $reference)->firstOrFail();
+
+        if ($request->hasFile('comprobante_pago')) {
+            $file = $request->file('comprobante_pago');
+            \Illuminate\Support\Facades\Log::error('Voucher upload file details:', [
+                'client_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'error_code' => $file->getError(),
+                'error_message' => $file->getErrorMessage(),
+                'is_valid' => $file->isValid(),
+            ]);
+        } else {
+            \Illuminate\Support\Facades\Log::error('Voucher upload request details:', [
+                'has_comprobante_pago' => $request->has('comprobante_pago'),
+                'files' => array_keys($request->allFiles()),
+                'post_data' => $request->all(),
+            ]);
+        }
 
         $request->validate([
             'comprobante_pago' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -135,9 +184,15 @@ class StudyRequestController extends Controller
         ]);
 
         if ($request->hasFile('comprobante_pago')) {
+            // Delete old file if exists
+            if ($studyRequest->comprobante_pago) {
+                Storage::disk('public')->delete($studyRequest->comprobante_pago);
+            }
+
             $path = $request->file('comprobante_pago')->store('vouchers', 'public');
             $studyRequest->update([
                 'comprobante_pago' => $path,
+                'status' => 'pendiente', // Reset status to pending review
             ]);
             return back()->with('success', '¡Comprobante de pago subido correctamente! Su pago está siendo validado.');
         }

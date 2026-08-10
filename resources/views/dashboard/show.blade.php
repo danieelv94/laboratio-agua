@@ -124,6 +124,7 @@
                         </div>
                     </div>
 
+                    @if(in_array(Auth::user()->role, ['admin', 'administracion']))
                     <!-- Facturación -->
                     <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
                         <h3 class="text-sm font-bold uppercase tracking-wider text-guinda-ceaa border-b border-slate-100 pb-2 mb-4">Información de Facturación</h3>
@@ -157,11 +158,35 @@
                                     <span class="text-slate-400 block">Dirección Fiscal:</span>
                                     <span class="font-medium text-slate-700 leading-normal">{{ $studyRequest->direccion_fiscal }}</span>
                                 </div>
+
+                                @if($studyRequest->archivo_factura)
+                                    <div class="sm:col-span-2 mt-2 p-3 bg-arena-claro/10 border border-dorado-ocre/20 rounded-xl flex items-center justify-between">
+                                        <div class="flex items-center space-x-2 text-xs">
+                                            <svg class="w-5 h-5 text-guinda-ceaa flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            <span class="font-semibold text-slate-800 font-title">Factura cargada (ZIP)</span>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $studyRequest->archivo_factura) }}" target="_blank" class="px-3 py-1 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-[10px] font-bold uppercase tracking-wider rounded-lg transition shadow-sm">
+                                            Descargar
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
+
+                            <form action="{{ route('dashboard.solicitud.factura', $studyRequest->id) }}" method="POST" enctype="multipart/form-data" class="mt-6 pt-5 border-t border-slate-100 space-y-3">
+                                @csrf
+                                <label for="archivo_factura" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adjuntar/Actualizar ZIP de Factura</label>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <input type="file" name="archivo_factura" id="archivo_factura" required accept=".zip" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-guinda-ceaa file:text-white hover:file:bg-guinda-ceaa-hover cursor-pointer border border-slate-200 rounded-xl p-1">
+                                    <button type="submit" class="px-5 py-2.5 bg-dorado-ocre hover:bg-[#a67f46] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition whitespace-nowrap">
+                                        Subir ZIP
+                                    </button>
+                                </div>
+                            </form>
                         @else
                             <p class="text-xs text-slate-400 italic">El solicitante no requirió factura para este trámite.</p>
                         @endif
                     </div>
+                    @endif
 
                     <!-- Encuesta de Satisfacción -->
                     @if($studyRequest->encuesta_respondida)
@@ -251,7 +276,8 @@
                                 @endif
                             </div>
 
-                            <form action="{{ route('dashboard.solicitud.actualizar', $studyRequest->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+                            @if(in_array(Auth::user()->role, ['admin', 'laboratorio']))
+                            <form x-data="{ showRejection: false }" action="{{ route('dashboard.solicitud.actualizar', $studyRequest->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
                                 @csrf
 
                                 <!-- Comprobante de Pago Subido (only show if pendiente or pago_verificado) -->
@@ -280,24 +306,41 @@
                                 @if($studyRequest->status === 'pendiente')
                                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                                         <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[10px]">Paso 1: Validar Pago</h4>
-                                        <p class="text-[10px] text-slate-500">Revise el comprobante bancario cargado. Una vez confirmado que el depósito es correcto, presione validar para avanzar.</p>
                                         
-                                        @if($studyRequest->comprobante_pago)
-                                            <button type="submit" onclick="document.getElementById('status-input').value='pago_verificado';" class="w-full py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-bold uppercase rounded-lg shadow-sm transition cursor-pointer flex items-center justify-center space-x-1.5">
-                                                <svg class="text-white flex-shrink-0" width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                                <span>Validar Pago y Avanzar</span>
+                                        <div x-show="!showRejection" class="space-y-3">
+                                            <p class="text-[10px] text-slate-500">Revise el comprobante bancario cargado. Una vez confirmado que el depósito es correcto, presione validar para avanzar.</p>
+                                            
+                                            @if($studyRequest->comprobante_pago)
+                                                <button type="submit" onclick="document.getElementById('status-input').value='pago_verificado';" class="w-full py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-bold uppercase rounded-lg shadow-sm transition cursor-pointer flex items-center justify-center space-x-1.5">
+                                                    <svg class="text-white flex-shrink-0" width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                    <span>Validar Pago y Avanzar</span>
+                                                </button>
+                                            @else
+                                                <button type="button" disabled class="w-full py-2 bg-slate-200 text-slate-400 text-xs font-bold uppercase rounded-lg cursor-not-allowed border border-slate-300 flex items-center justify-center space-x-1.5">
+                                                    <svg class="text-slate-400 flex-shrink-0" width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                    <span>Validar Pago (Bloqueado)</span>
+                                                </button>
+                                                <span class="block text-[9px] text-red-600 font-semibold leading-normal text-center mt-1 font-sans">* Requiere que el solicitante cargue primero el comprobante.</span>
+                                            @endif
+                                            
+                                            <button type="button" @click="showRejection = true" class="w-full py-1 text-red-700 hover:text-red-800 text-[10px] font-bold text-center block mt-1 hover:underline cursor-pointer bg-transparent border-0">
+                                                Rechazar Solicitud
                                             </button>
-                                        @else
-                                            <button type="button" disabled class="w-full py-2 bg-slate-200 text-slate-400 text-xs font-bold uppercase rounded-lg cursor-not-allowed border border-slate-300 flex items-center justify-center space-x-1.5">
-                                                <svg class="text-slate-400 flex-shrink-0" width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                                <span>Validar Pago (Bloqueado)</span>
-                                            </button>
-                                            <span class="block text-[9px] text-red-600 font-semibold leading-normal text-center mt-1 font-sans">* Requiere que el solicitante cargue primero el comprobante.</span>
-                                        @endif
-                                        
-                                        <button type="submit" onclick="document.getElementById('status-input').value='rechazado';" class="w-full py-1 text-red-700 hover:text-red-800 text-[10px] font-bold text-center block mt-1 hover:underline cursor-pointer bg-transparent border-0">
-                                            Rechazar Solicitud
-                                        </button>
+                                        </div>
+
+                                        <div x-show="showRejection" x-cloak class="space-y-3" x-transition>
+                                            <label for="motivo_rechazo" class="block font-bold text-red-700 uppercase tracking-wider text-[9px]">Motivo del Rechazo <span class="text-red-500">*</span></label>
+                                            <textarea name="comentarios_staff" id="motivo_rechazo" rows="3" placeholder="Escriba detalladamente la razón del rechazo de la solicitud..." :required="showRejection" :disabled="!showRejection" class="w-full rounded-lg border-red-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-xs py-1.5 bg-white"></textarea>
+                                            
+                                            <div class="flex space-x-2">
+                                                <button type="submit" onclick="document.getElementById('status-input').value='rechazado';" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase rounded-lg shadow-sm transition cursor-pointer">
+                                                    Confirmar Rechazo
+                                                </button>
+                                                <button type="button" @click="showRejection = false" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold uppercase rounded-lg transition cursor-pointer">
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endif
 
@@ -309,7 +352,7 @@
                                         
                                         <div class="space-y-1">
                                             <label for="fecha_muestreo" class="block font-bold text-slate-500 uppercase tracking-wider text-[9px]">Fecha y Hora de la Visita</label>
-                                            <input type="datetime-local" name="fecha_muestreo" id="fecha_muestreo" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa py-1.5 text-xs">
+                                            <input type="text" name="fecha_muestreo" id="fecha_muestreo" placeholder="Seleccione fecha y hora..." readonly class="w-full rounded-lg border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa py-1.5 text-xs bg-white cursor-pointer">
                                         </div>
 
                                         <button type="submit" onclick="document.getElementById('status-input').value='muestreo_programado';" class="w-full py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-bold uppercase rounded-lg shadow-sm transition cursor-pointer">
@@ -395,6 +438,13 @@
                                     <div class="bg-red-50 p-4 rounded-xl border border-red-200 space-y-3 text-center">
                                         <h4 class="font-bold text-red-800 uppercase tracking-wider text-[10px]">Solicitud Rechazada</h4>
                                         <p class="text-[10px] text-red-600">Este trámite ha sido rechazado o cancelado.</p>
+
+                                        @if($studyRequest->comentarios_staff)
+                                            <div class="bg-white p-3 rounded-xl border border-red-100 text-left text-xs space-y-1">
+                                                <span class="font-bold text-red-800 text-[9px] uppercase tracking-wider block">Motivo del Rechazo:</span>
+                                                <p class="text-[10px] text-slate-700 leading-normal whitespace-pre-line">{{ $studyRequest->comentarios_staff }}</p>
+                                            </div>
+                                        @endif
                                         
                                         <button type="submit" onclick="document.getElementById('status-input').value='pendiente';" class="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold uppercase rounded-lg transition cursor-pointer">
                                             Reabrir / Restaurar Solicitud
@@ -407,9 +457,9 @@
 
                                 <!-- Comments Section (Available at all active states to write messages to the user) -->
                                 @if($studyRequest->status !== 'rechazado')
-                                    <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                                    <div x-show="!showRejection" x-cloak class="space-y-1.5 pt-2 border-t border-slate-100" x-transition>
                                         <label for="comentarios_staff" class="block font-bold text-slate-500 uppercase tracking-wider text-[9px]">Comentarios / Observaciones al Solicitante</label>
-                                        <textarea name="comentarios_staff" id="comentarios_staff" rows="3" placeholder="Comentarios adicionales que el ciudadano podrá ver al consultar su folio..." class="w-full rounded-lg border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-xs py-1.5">{{ $studyRequest->comentarios_staff }}</textarea>
+                                        <textarea name="comentarios_staff" id="comentarios_staff" :disabled="showRejection" rows="3" placeholder="Comentarios adicionales que el ciudadano podrá ver al consultar su folio..." class="w-full rounded-lg border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-xs py-1.5">{{ $studyRequest->comentarios_staff }}</textarea>
                                         @if($studyRequest->status !== 'completado')
                                             <div class="flex justify-end">
                                                 <button type="submit" onclick="document.getElementById('status-input').value='{{ $studyRequest->status }}';" class="text-[10px] font-bold text-guinda-ceaa hover:underline bg-transparent border-0 cursor-pointer flex items-center space-x-1">
@@ -425,6 +475,12 @@
                                     </div>
                                 @endif
                             </form>
+                            @else
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center space-y-1.5 text-xs text-slate-500">
+                                    <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px] block">Acciones Técnicas Restringidas</span>
+                                    <p class="leading-normal">Su rol de Administración está enfocado en la gestión fiscal del depósito y la emisión de facturas. Las tareas técnicas de laboratorio y agenda de visitas están restringidas.</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -446,4 +502,58 @@
 
         </div>
     </div>
+
+    <!-- Flatpickr CSS & JS integration -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <style>
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange, 
+        .flatpickr-day.selected.inRange, 
+        .flatpickr-day.startRange.inRange, 
+        .flatpickr-day.endRange.inRange, 
+        .flatpickr-day.selected:focus, 
+        .flatpickr-day.startRange:focus, 
+        .flatpickr-day.endRange:focus, 
+        .flatpickr-day.selected:hover, 
+        .flatpickr-day.startRange:hover, 
+        .flatpickr-day.endRange:hover, 
+        .flatpickr-day.prevMonthDay.selected, 
+        .flatpickr-day.nextMonthDay.selected {
+            background: #800020 !important; /* Guinda CEAA */
+            border-color: #800020 !important;
+            color: #fff !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            color: #800020 !important;
+            fill: #800020 !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-bottom-color: #800020 !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-top-color: #800020 !important;
+        }
+        .flatpickr-months .flatpickr-prev-month:hover svg, 
+        .flatpickr-months .flatpickr-next-month:hover svg {
+            fill: #800020 !important;
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const occupiedDates = @json($occupiedDates ?? []);
+
+            flatpickr("#fecha_muestreo", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                locale: "es",
+                minDate: "today",
+                disable: occupiedDates
+            });
+        });
+    </script>
 </x-app-layout>

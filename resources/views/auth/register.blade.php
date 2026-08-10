@@ -45,6 +45,17 @@
                                 name="password_confirmation" required />
             </div>
 
+            <!-- Role -->
+            <div class="mt-4">
+                <x-label for="role" :value="__('Rol del Usuario')" />
+
+                <select id="role" name="role" required class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
+                    <option value="laboratorio" {{ old('role') === 'laboratorio' ? 'selected' : '' }}>Laboratorio (Personal Técnico)</option>
+                    <option value="administracion" {{ old('role') === 'administracion' ? 'selected' : '' }}>Administración (Facturación y Pagos)</option>
+                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrador General</option>
+                </select>
+            </div>
+
             <div class="flex items-center justify-end mt-4">
                 <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('login') }}">
                     {{ __('Already registered?') }}

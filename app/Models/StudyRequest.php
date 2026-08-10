@@ -36,6 +36,7 @@ class StudyRequest extends Model
         'fecha_muestreo',
         'comentarios_staff',
         'archivo_resultados',
+        'archivo_factura',
         'comprobante_pago',
         'cantidad_muestras',
         'encuesta_respondida',

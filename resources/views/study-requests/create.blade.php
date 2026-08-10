@@ -161,16 +161,6 @@
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                         </div>
                     </div>
-
-                    <div class="space-y-2">
-                        <label for="direccion"
-                            class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dirección Física
-                            Completa <span class="text-red-500">*</span></label>
-                        <textarea name="direccion" id="direccion" rows="3"
-                            placeholder="Calle, Número, Colonia, Municipio, Código Postal, Estado"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm"
-                            required>{{ old('direccion') }}</textarea>
-                    </div>
                 </div>
 
                 <!-- STEP 2: DATOS DE LA MUESTRA -->
@@ -286,6 +276,35 @@
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                         </div>
                     </div>
+
+                    <!-- Dirección Física del Muestreo -->
+                    <div class="space-y-2 mt-4">
+                        <label for="direccion"
+                            class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Dirección Física del Muestreo (Completa) <span class="text-red-500">*</span></label>
+                        <textarea name="direccion" id="direccion" rows="3"
+                            placeholder="Calle, Número, Colonia, Municipio, Código Postal, Estado (Dirección exacta donde se realizará la toma de muestra)"
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm"
+                            required>{{ old('direccion') }}</textarea>
+                    </div>
+
+                    <!-- Invoicing Requirement Toggle -->
+                    <div class="mt-6 pt-5 border-t border-slate-100 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">¿Requiere Factura Electrónica? <span class="text-red-500">*</span></span>
+                        <p class="text-xs text-slate-500 mb-4 font-normal">Indique si requiere comprobante fiscal digital (CFDI) para este trámite. De ser así, se habilitará el paso de Facturación para ingresar sus datos fiscales de forma obligatoria.</p>
+                        
+                        <div class="flex items-center space-x-6">
+                            <label class="flex items-center space-x-2.5 cursor-pointer">
+                                <input type="radio" name="requiere_factura_radio" :value="true" x-model="requiereFactura" class="text-guinda-ceaa focus:ring-guinda-ceaa">
+                                <span class="text-xs font-semibold text-slate-700">Sí, requiero factura</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 cursor-pointer">
+                                <input type="radio" name="requiere_factura_radio" :value="false" x-model="requiereFactura" class="text-guinda-ceaa focus:ring-guinda-ceaa">
+                                <span class="text-xs font-semibold text-slate-700">No requiero factura</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="requiere_factura" :value="isFacturaRequired() ? 1 : 0">
                 </div>
 
                 <!-- STEP 3: INFORMACIÓN DE FACTURACIÓN (OPCIONAL) -->
@@ -294,7 +313,9 @@
                         <div class="flex items-center justify-between">
                             <h2 class="text-xl font-bold font-title text-guinda-ceaa">Información para Facturación</h2>
                             <span
-                                class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Opcional</span>
+                                 class="text-xs font-bold text-guinda-ceaa bg-arena-claro/25 px-2.5 py-0.5 rounded-full uppercase tracking-wider" x-show="isFacturaRequired()" x-cloak>Requerido</span>
+                             <span
+                                 class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded" x-show="!isFacturaRequired()" x-cloak>Opcional</span>
                         </div>
                         <p class="text-xs text-slate-500">Complete si requiere comprobante fiscal digital por internet
                             (CFDI).</p>
@@ -303,85 +324,84 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label for="rfc"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">RFC</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">RFC <span class="text-red-500">*</span></label>
                             <input type="text" name="rfc" id="rfc" value="{{ old('rfc') }}"
                                 placeholder="RFC de la Razón Social"
                                 minlength="12" maxlength="13"
+                                :required="isFacturaRequired()"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                         </div>
 
                         <div class="space-y-2">
                             <label for="razon_social"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre o
-                                Razón Social</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Nombre o Razón Social <span class="text-red-500">*</span></label>
                             <input type="text" name="razon_social" id="razon_social" value="{{ old('razon_social') }}"
                                 placeholder="Denominación o Razón Social"
+                                :required="isFacturaRequired()"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                         </div>
 
                         <div class="space-y-2">
                             <label for="uso_cfdi"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Uso de
-                                CFDI</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Uso de CFDI <span class="text-red-500">*</span></label>
                             <select name="uso_cfdi" id="uso_cfdi"
+                                :required="isFacturaRequired()"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                                 <option value="">Seleccione una opción...</option>
-                                <option value="G03" {{ old('uso_cfdi') == 'G03' ? 'selected' : '' }}>G03 - Gastos en
-                                    general</option>
-                                <option value="G01" {{ old('uso_cfdi') == 'G01' ? 'selected' : '' }}>G01 - Adquisición de
-                                    mercancías</option>
-                                <option value="I08" {{ old('uso_cfdi') == 'I08' ? 'selected' : '' }}>I08 - Otra maquinaria
-                                    y equipo</option>
-                                <option value="S01" {{ old('uso_cfdi') == 'S01' ? 'selected' : '' }}>S01 - Sin efectos
-                                    fiscales</option>
+                                <option value="G03" {{ old('uso_cfdi') == 'G03' ? 'selected' : '' }}>G03 - Gastos en general</option>
+                                <option value="G01" {{ old('uso_cfdi') == 'G01' ? 'selected' : '' }}>G01 - Adquisición de mercancías</option>
+                                <option value="I08" {{ old('uso_cfdi') == 'I08' ? 'selected' : '' }}>I08 - Otra maquinaria y equipo</option>
+                                <option value="S01" {{ old('uso_cfdi') == 'S01' ? 'selected' : '' }}>S01 - Sin efectos fiscales</option>
                             </select>
                         </div>
 
                         <div class="space-y-2">
                             <label for="metodo_pago"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Método de
-                                Pago</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Método de Pago <span class="text-red-500">*</span></label>
                             <select name="metodo_pago" id="metodo_pago"
+                                :required="isFacturaRequired()"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                                 <option value="">Seleccione una opción...</option>
-                                <option value="PUE" {{ old('metodo_pago') == 'PUE' ? 'selected' : '' }}>PUE - Pago en una
-                                    sola exhibición</option>
-                                <option value="PPD" {{ old('metodo_pago') == 'PPD' ? 'selected' : '' }}>PPD - Pago en
-                                    parcialidades o diferido</option>
+                                <option value="PUE" {{ old('metodo_pago') == 'PUE' ? 'selected' : '' }}>PUE - Pago en una sola exhibición</option>
+                                <option value="PPD" {{ old('metodo_pago') == 'PPD' ? 'selected' : '' }}>PPD - Pago en parcialidades o diferido</option>
                             </select>
                         </div>
 
                         <div class="space-y-2">
                             <label for="forma_pago"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Forma de
-                                Pago</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Forma de Pago <span class="text-red-500">*</span></label>
                             <select name="forma_pago" id="forma_pago"
+                                :required="isFacturaRequired()"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                                 <option value="">Seleccione una opción...</option>
-                                <option value="Transferencia electrónica de fondos" {{ old('forma_pago') == 'Transferencia electrónica de fondos' ? 'selected' : '' }}>Transferencia electrónica de fondos
-                                </option>
-                                <option value="Depósito" {{ old('forma_pago') == 'Depósito' ? 'selected' : '' }}>Depósito
-                                </option>
+                                <option value="Transferencia electrónica de fondos" {{ old('forma_pago') == 'Transferencia electrónica de fondos' ? 'selected' : '' }}>Transferencia electrónica de fondos</option>
+                                <option value="Depósito" {{ old('forma_pago') == 'Depósito' ? 'selected' : '' }}>Depósito</option>
                             </select>
                         </div>
 
                         <div class="space-y-2">
                             <label for="ultimos_cuatro_digitos"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Últimos 4
-                                dígitos de Cuenta</label>
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Últimos 4 dígitos de Cuenta <span class="text-slate-400 font-normal lowercase">(opcional)</span></label>
                             <input type="text" name="ultimos_cuatro_digitos" id="ultimos_cuatro_digitos"
                                 value="{{ old('ultimos_cuatro_digitos') }}" placeholder="Ej. 1234" 
                                 minlength="4" maxlength="4" pattern="[0-9]{4}" title="Debe contener exactamente 4 números"
+                                :disabled="!isFacturaRequired()"
                                 class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm py-2.5">
                         </div>
                     </div>
 
                     <div class="space-y-2">
                         <label for="direccion_fiscal"
-                            class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dirección Fiscal
-                            Completa</label>
+                            class="block text-xs font-semibold uppercase tracking-wider text-slate-500 font-title">Dirección Fiscal Completa <span class="text-red-500">*</span></label>
                         <textarea name="direccion_fiscal" id="direccion_fiscal" rows="2"
                             placeholder="Calle, Número, Colonia, Código Postal, etc."
+                            :required="isFacturaRequired()"
+                            :disabled="!isFacturaRequired()"
                             class="w-full rounded-xl border-slate-300 shadow-sm focus:border-guinda-ceaa focus:ring-guinda-ceaa text-sm">{{ old('direccion_fiscal') }}</textarea>
                     </div>
                 </div>
@@ -469,7 +489,7 @@
 
                 <!-- Navigation Buttons inside Form -->
                 <div class="flex items-center justify-between pt-6 border-t border-slate-100">
-                    <button type="button" x-show="step > 1" @click="step--"
+                    <button type="button" x-show="step > 1" @click="prevStep()"
                         class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition"
                         x-cloak>
                         Anterior
@@ -506,6 +526,24 @@
                 tiposMuestra: {!! json_encode(old('tipos_muestra', [])) !!},
                 normativas: {!! json_encode(old('normativas', [])) !!},
                 cantidadMuestras: {{ old('cantidad_muestras', 1) }},
+                requiereFactura: {{ old('requiere_factura', 0) == 1 ? 'true' : 'false' }},
+                init() {
+                    this.$watch('requiereFactura', value => {
+                        if (!this.isFacturaRequired()) {
+                            const fields = ['rfc', 'razon_social', 'direccion_fiscal', 'uso_cfdi', 'metodo_pago', 'forma_pago', 'ultimos_cuatro_digitos'];
+                            fields.forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) {
+                                    el.value = '';
+                                    el.setCustomValidity('');
+                                }
+                            });
+                        }
+                    });
+                },
+                isFacturaRequired() {
+                    return this.requiereFactura === true || this.requiereFactura === 'true' || this.requiereFactura === 1 || this.requiereFactura === '1';
+                },
                 isOnlyPotable() {
                     return this.tiposMuestra.includes('AGUA POTABLE') && !this.tiposMuestra.includes('AGUA RESIDUAL') && !this.tiposMuestra.includes('AGUA TRATADA');
                 },
@@ -545,14 +583,25 @@
                 },
                 nextStep() {
                     if (this.validateStep(this.step)) {
-                        this.step++;
+                        if (this.step === 2 && !this.isFacturaRequired()) {
+                            this.step = 4;
+                        } else {
+                            this.step++;
+                        }
+                    }
+                },
+                prevStep() {
+                    if (this.step === 4 && !this.isFacturaRequired()) {
+                        this.step = 2;
+                    } else {
+                        this.step--;
                     }
                 },
                 validateStep(stepNum) {
                     const stepEl = document.querySelector(`[x-show='step === ${stepNum}']`);
                     if (!stepEl) return true;
 
-                    // Paso 2: Validar checkboxes de selección obligatorios
+                    // Paso 2: Validar checkboxes de selección obligatorios y dirección
                     if (stepNum === 2) {
                         if (this.puntosMuestreo.length === 0) {
                             const firstCheckbox = stepEl.querySelector('input[name="puntos_muestreo[]"]');
@@ -581,66 +630,68 @@
                             }
                             return false;
                         }
+                        const dirInput = document.getElementById('direccion');
+                        if (dirInput && !dirInput.value.trim()) {
+                            dirInput.setCustomValidity('La dirección física del muestreo es obligatoria.');
+                            dirInput.reportValidity();
+                            dirInput.addEventListener('input', () => dirInput.setCustomValidity(''), { once: true });
+                            return false;
+                        }
                     }
 
                     // Paso 3: Validaciones de Facturación
                     if (stepNum === 3) {
-                        const rfcInput = document.getElementById('rfc');
-                        const rfcVal = rfcInput ? rfcInput.value.trim() : '';
+                        if (this.isFacturaRequired()) {
+                            const rfcInput = document.getElementById('rfc');
+                            const rfcVal = rfcInput ? rfcInput.value.trim() : '';
 
-                        const razonInput = document.getElementById('razon_social');
-                        const razonSocialVal = razonInput ? razonInput.value.trim() : '';
+                            const razonInput = document.getElementById('razon_social');
+                            const razonSocialVal = razonInput ? razonInput.value.trim() : '';
 
-                        const usoInput = document.getElementById('uso_cfdi');
-                        const usoCfdiVal = usoInput ? usoInput.value : '';
+                            const usoInput = document.getElementById('uso_cfdi');
+                            const usoCfdiVal = usoInput ? usoInput.value : '';
 
-                        const metodoInput = document.getElementById('metodo_pago');
-                        const metodoPagoVal = metodoInput ? metodoInput.value : '';
+                            const metodoInput = document.getElementById('metodo_pago');
+                            const metodoPagoVal = metodoInput ? metodoInput.value : '';
 
-                        const formaInput = document.getElementById('forma_pago');
-                        const formaPagoVal = formaInput ? formaInput.value : '';
+                            const formaInput = document.getElementById('forma_pago');
+                            const formaPagoVal = formaInput ? formaInput.value : '';
 
-                        const direccionInput = document.getElementById('direccion_fiscal');
-                        const direccionFiscalVal = direccionInput ? direccionInput.value.trim() : '';
+                            const direccionInput = document.getElementById('direccion_fiscal');
+                            const direccionFiscalVal = direccionInput ? direccionInput.value.trim() : '';
 
-                        const digitosInput = document.getElementById('ultimos_cuatro_digitos');
-                        const digitosVal = digitosInput ? digitosInput.value.trim() : '';
-
-                        const hasAnyBilling = rfcVal || razonSocialVal || usoCfdiVal || metodoPagoVal || formaPagoVal || direccionFiscalVal || digitosVal;
-
-                        if (hasAnyBilling) {
                             if (!rfcVal) {
-                                rfcInput.setCustomValidity('El RFC es obligatorio si desea facturación.');
+                                rfcInput.setCustomValidity('El RFC es obligatorio.');
                                 rfcInput.reportValidity();
                                 rfcInput.addEventListener('input', () => rfcInput.setCustomValidity(''), { once: true });
                                 return false;
                             }
                             if (!razonSocialVal) {
-                                razonInput.setCustomValidity('La Razón Social es obligatoria si desea facturación.');
+                                razonInput.setCustomValidity('La Razón Social es obligatoria.');
                                 razonInput.reportValidity();
                                 razonInput.addEventListener('input', () => razonInput.setCustomValidity(''), { once: true });
                                 return false;
                             }
                             if (!usoCfdiVal) {
-                                usoInput.setCustomValidity('El Uso de CFDI es obligatorio si desea facturación.');
+                                usoInput.setCustomValidity('El Uso de CFDI es obligatorio.');
                                 usoInput.reportValidity();
                                 usoInput.addEventListener('change', () => usoInput.setCustomValidity(''), { once: true });
                                 return false;
                             }
                             if (!metodoPagoVal) {
-                                metodoInput.setCustomValidity('El Método de Pago es obligatorio si desea facturación.');
+                                metodoInput.setCustomValidity('El Método de Pago es obligatorio.');
                                 metodoInput.reportValidity();
                                 metodoInput.addEventListener('change', () => metodoInput.setCustomValidity(''), { once: true });
                                 return false;
                             }
                             if (!formaPagoVal) {
-                                formaInput.setCustomValidity('La Forma de Pago es obligatoria si desea facturación.');
+                                formaInput.setCustomValidity('La Forma de Pago es obligatoria.');
                                 formaInput.reportValidity();
                                 formaInput.addEventListener('change', () => formaInput.setCustomValidity(''), { once: true });
                                 return false;
                             }
                             if (!direccionFiscalVal) {
-                                direccionInput.setCustomValidity('La Dirección Fiscal es obligatoria si desea facturación.');
+                                direccionInput.setCustomValidity('La Dirección Fiscal es obligatoria.');
                                 direccionInput.reportValidity();
                                 direccionInput.addEventListener('input', () => direccionInput.setCustomValidity(''), { once: true });
                                 return false;

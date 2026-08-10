@@ -28,7 +28,15 @@ Route::post('/solicitud/{reference}/encuesta', [StudyRequestController::class, '
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [CeaaStaffController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/solicitud/{studyRequest}', [CeaaStaffController::class, 'show'])->name('dashboard.solicitud');
-    Route::post('/dashboard/solicitud/{studyRequest}/actualizar', [CeaaStaffController::class, 'update'])->name('dashboard.solicitud.actualizar');
+    
+    // Actions restricted by role
+    Route::post('/dashboard/solicitud/{studyRequest}/actualizar', [CeaaStaffController::class, 'update'])
+        ->middleware('role:admin,laboratorio')
+        ->name('dashboard.solicitud.actualizar');
+
+    Route::post('/dashboard/solicitud/{studyRequest}/factura', [CeaaStaffController::class, 'uploadInvoice'])
+        ->middleware('role:admin,administracion')
+        ->name('dashboard.solicitud.factura');
 });
 
 require __DIR__.'/auth.php';

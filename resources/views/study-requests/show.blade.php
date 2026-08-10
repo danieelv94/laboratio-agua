@@ -43,6 +43,20 @@
             </div>
         @endif
 
+        @if($errors->any())
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm text-sm text-red-800 font-semibold space-y-1">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                    <span>Hubo un problema:</span>
+                </div>
+                <ul class="list-disc list-inside pl-5 text-xs text-red-700 font-normal">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Reference Prominent Header -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-1">
@@ -55,7 +69,7 @@
             <div class="flex-shrink-0">
                 @php
                     $colors = [
-                        'pendiente' => ['bg-slate-100', 'text-slate-700', $studyRequest->comprobante_pago ? 'Pago en Revisión' : 'Pendiente de Pago'],
+                        'pendiente' => ['bg-slate-100', 'text-slate-700', trim($studyRequest->comprobante_pago) ? 'Pago en Revisión' : 'Pendiente de Pago'],
                         'pago_verificado' => ['bg-arena-claro/25', 'text-guinda-ceaa', 'Pago Verificado'],
                         'muestreo_programado' => ['bg-arena-claro/20', 'text-guinda-ceaa', 'Muestreo Programado'],
                         'en_analisis' => ['bg-arena-claro/20', 'text-purple-800', 'En Análisis (Laboratorio)'],
@@ -82,8 +96,14 @@
             @endphp
 
             @if($isRejected)
-                <div class="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 text-xs font-medium">
-                    Esta solicitud ha sido rechazada o cancelada por el personal de la CEAA. Por favor, póngase en contacto con la Dirección de Calidad del Agua.
+                <div class="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 text-xs font-medium space-y-2">
+                    <p>Esta solicitud ha sido rechazada o cancelada por el personal de la CEAA. Por favor, póngase en contacto con la Dirección de Calidad del Agua para solventar y poder continuar con el servicio. </p>
+                    @if($studyRequest->comentarios_staff)
+                        <div class="bg-white p-3.5 rounded-xl border border-red-100 text-slate-700 font-normal leading-relaxed text-[11px]">
+                            <strong class="text-red-800 block uppercase text-[9px] tracking-wider mb-1">Motivo del Rechazo:</strong>
+                            {{ $studyRequest->comentarios_staff }}
+                        </div>
+                    @endif
                 </div>
             @else
                 <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-2">
@@ -102,7 +122,7 @@
                             $isDone = $currentIndex >= $index;
                             $isCurrent = $studyRequest->status === $stepStatus;
                             $description = $step[2];
-                            if ($stepStatus === 'pendiente' && $studyRequest->comprobante_pago) {
+                            if ($stepStatus === 'pendiente' && trim($studyRequest->comprobante_pago)) {
                                 $description = 'Pago en revisión';
                             }
                         @endphp
@@ -290,28 +310,32 @@
 
                 <ol class="space-y-4 text-xs text-slate-600 list-decimal list-inside pl-1 leading-relaxed">
                     <li class="pl-2">
-                        <strong class="text-slate-800">Enviar Voucher:</strong> Remita copia digitalizada o fotografía del comprobante de pago al correo oficial: <a href="mailto:ceaa.calidaddelagua@hidalgo.gob.mx" class="text-guinda-ceaa font-semibold hover:underline">ceaa.calidaddelagua@hidalgo.gob.mx</a>.
-                    </li>
-                    <li class="pl-2">
-                        <strong class="text-slate-800">Asunto del Correo:</strong> Indique en el asunto el folio <span class="font-bold text-slate-800">{{ $studyRequest->referencia_bancaria }}</span> para su rápida identificación.
-                    </li>
-                    <li class="pl-2">
-                        <strong class="text-slate-800">Facturación:</strong> Si requiere factura electrónica, anexe su propuesta de cotización inicial y los datos fiscales que ingresó en el formulario.
+                        <!--<strong class="text-slate-800">Enviar Voucher:</strong> Remita copia digitalizada o fotografía del comprobante de pago al correo oficial: <a href="mailto:ceaa.calidaddelagua@hidalgo.gob.mx" class="text-guinda-ceaa font-semibold hover:underline">ceaa.calidaddelagua@hidalgo.gob.mx</a>.-->
+                        <strong class="text-slate-800">Enviar Voucher:</strong> Remita copia digitalizada o fotografía del comprobante de pago a través de esta plataforma.
                     </li>
                     <li class="pl-2">
                         <strong class="text-slate-800">Toma de Muestra:</strong> Personal técnico de la CEAA validará su pago y se pondrá en contacto para concretar la fecha y hora de la visita física del muestreo.
                     </li>
+                    <li class="pl-2">
+                        <strong class="text-slate-800">Resultados y Certificado:</strong> Una vez concluidos los análisis en el laboratorio, podrá consultar y descargar su certificado oficial de resultados firmado digitalmente desde esta misma plataforma.
+                    </li>
                 </ol>
 
-                @if(!$studyRequest->comprobante_pago)
+                @if(!trim($studyRequest->comprobante_pago) || $studyRequest->status === 'rechazado')
                     <div class="mt-6 pt-5 border-t border-slate-100 space-y-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-guinda-ceaa">Subir Comprobante de Pago</h3>
-                        <p class="text-[11px] text-slate-500 leading-normal">Una vez realizado su depósito, suba su comprobante digital en formato PDF o imagen para agilizar la validación.</p>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-guinda-ceaa">
+                            {{ $studyRequest->status === 'rechazado' ? 'Reenviar Comprobante de Pago' : 'Subir Comprobante de Pago' }}
+                        </h3>
+                        <p class="text-[11px] text-slate-500 leading-normal">
+                            {{ $studyRequest->status === 'rechazado' ? 'Su comprobante anterior fue rechazado. Por favor, suba un nuevo comprobante corregido para reanudar el trámite.' : 'Una vez realizado su depósito, suba su comprobante digital en formato PDF o imagen para agilizar la validación.' }}
+                        </p>
                         
                         <form action="{{ route('solicitud.comprobante', $studyRequest->referencia_bancaria) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                             @csrf
                             <div class="space-y-2">
-                                <input type="file" name="comprobante_pago" id="comprobante_pago" required class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-guinda-ceaa file:text-white hover:file:bg-guinda-ceaa-hover cursor-pointer" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" name="comprobante_pago" id="comprobante_pago" required 
+                                    onchange="checkFileSize(this)"
+                                    class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-guinda-ceaa file:text-white hover:file:bg-guinda-ceaa-hover cursor-pointer" accept=".pdf,.jpg,.jpeg,.png">
                                 <button type="submit" class="w-full py-2 bg-dorado-ocre hover:bg-[#a67f46] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow transition">
                                     Enviar Comprobante
                                 </button>
@@ -322,8 +346,13 @@
                     <div class="mt-6 pt-5 border-t border-slate-100 bg-arena-claro/10 p-4 rounded-2xl border border-dorado-ocre/20 flex items-start space-x-3">
                         <svg class="w-5 h-5 text-guinda-ceaa mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div class="space-y-1">
-                            <span class="text-xs font-bold text-guinda-ceaa block">Comprobante de Pago Recibido</span>
-                            <span class="text-[10px] text-slate-600 block leading-normal">Estamos validando su depósito. El personal técnico se contactará en breve para programar el muestreo.</span>
+                            @if($studyRequest->status === 'pendiente')
+                                <span class="text-xs font-bold text-guinda-ceaa block">Comprobante de Pago en Revisión</span>
+                                <span class="text-[10px] text-slate-600 block leading-normal">Su comprobante ha sido recibido y está en proceso de validación. Una vez aprobado, en esta misma plataforma se mostrará la fecha de programación de su muestreo.</span>
+                            @else
+                                <span class="text-xs font-bold text-guinda-ceaa block">Pago Verificado</span>
+                                <span class="text-[10px] text-slate-600 block leading-normal">El pago de su depósito ha sido validado con éxito. En esta misma plataforma se mostrará la fecha de programación de la visita para la toma de muestras.</span>
+                            @endif
                             <a href="{{ asset('storage/' . $studyRequest->comprobante_pago) }}" target="_blank" class="inline-flex items-center text-[10px] text-guinda-ceaa font-bold hover:underline space-x-1 mt-1">
                                 <span>Ver Archivo Cargado</span>
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -333,6 +362,50 @@
                 @endif
             </div>
         </div>
+
+        @if($studyRequest->rfc)
+            <!-- Invoice Download Section (only if requested and available) -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-4">
+                <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold font-title text-guinda-ceaa">Factura Electrónica (CFDI)</h2>
+                        <p class="text-xs text-slate-500">Comprobante fiscal digital solicitado.</p>
+                    </div>
+                    @if($studyRequest->archivo_factura)
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-arena-claro/25 text-guinda-ceaa">
+                            Factura Emitida
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500">
+                            Pendiente de Emisión
+                        </span>
+                    @endif
+                </div>
+
+                @if($studyRequest->archivo_factura)
+                    <div class="bg-arena-claro/10 p-4 rounded-2xl border border-dorado-ocre/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-guinda-ceaa mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <div class="space-y-1">
+                                <span class="text-xs font-bold text-slate-800 block">Descargar Comprobantes Fiscales</span>
+                                <span class="text-[10px] text-slate-600 block leading-normal">Su factura electrónica está lista en formato ZIP (contiene los archivos PDF y XML correspondientes).</span>
+                            </div>
+                        </div>
+                        <a href="{{ asset('storage/' . $studyRequest->archivo_factura) }}" target="_blank" class="px-5 py-2.5 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition whitespace-nowrap text-center">
+                            Descargar Factura (ZIP)
+                        </a>
+                    </div>
+                @else
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-500 block">Factura en Proceso</span>
+                            <span class="text-[10px] text-slate-500 block leading-normal">El personal del área de administración está procesando la emisión de su factura con los datos fiscales proporcionados. Podrá descargarla en esta sección en cuanto sea cargada.</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         <!-- Detailed Request Data Accordion -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
@@ -392,5 +465,16 @@
         &copy; {{ date('Y') }} Comisión Estatal del Agua y Alcantarillado - CEAA. Hidalgo.
     </footer>
 
+    <script>
+        function checkFileSize(input) {
+            if (input.files && input.files[0]) {
+                const maxSize = 5 * 1024 * 1024; // 5 MB
+                if (input.files[0].size > maxSize) {
+                    alert('El archivo seleccionado excede el tamaño máximo permitido de 5 MB. Por favor, seleccione un archivo más pequeño.');
+                    input.value = ''; // Clear selection
+                }
+            }
+        }
+    </script>
 </body>
 </html>

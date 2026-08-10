@@ -12,21 +12,31 @@ class RegistrationTest extends TestCase
 
     public function test_registration_screen_can_be_rendered()
     {
-        $response = $this->get('/register');
+        $admin = \App\Models\User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->get('/register');
 
         $response->assertStatus(200);
     }
 
-    public function test_new_users_can_register()
+    public function test_new_users_can_be_registered_by_admin()
     {
-        $response = $this->post('/register', [
+        $admin = \App\Models\User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'role' => 'laboratorio',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@example.com',
+            'role' => 'laboratorio',
+        ]);
+        
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($admin);
     }
 }
