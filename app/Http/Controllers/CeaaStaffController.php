@@ -179,10 +179,13 @@ class CeaaStaffController extends Controller
         // 2. Study type and sample calculations
         // Query only requests that are not rejected to get clean analytics
         $requests = StudyRequest::where('status', '!=', 'rechazado')->get([
-            'status', 'tipos_muestra', 'normativas', 'puntos_muestreo', 'cantidad_muestras', 'updated_at'
+            'status', 'tipos_muestra', 'normativas', 'puntos_muestreo', 'cantidad_muestras', 'importe', 'updated_at'
         ]);
 
         $totalSamples = $requests->sum('cantidad_muestras');
+        
+        // Sum import of requests with verified payment or later stages (not pending or rejected)
+        $totalCollected = $requests->whereNotIn('status', ['pendiente', 'rechazado'])->sum('importe');
         
         $sampleTypeCounts = [];
         $normativaCounts = [];
@@ -240,6 +243,7 @@ class CeaaStaffController extends Controller
             'overallAverage',
             'surveyAverages',
             'totalSamples',
+            'totalCollected',
             'sampleTypeCounts',
             'normativaCounts',
             'puntoMuestreoCounts',
