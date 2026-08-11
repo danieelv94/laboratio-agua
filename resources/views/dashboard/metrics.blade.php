@@ -14,20 +14,26 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <!-- Banner: Total Recaudado -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div
+                class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center space-x-4">
                     <div class="p-4 bg-emerald-500/10 rounded-2xl text-emerald-600">
                         <!-- Cash Icon -->
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Recaudado por Servicios</div>
-                        <div class="text-3xl font-black text-emerald-600 mt-1">${{ number_format($totalCollected, 2) }} <span class="text-xs font-normal text-slate-400">MXN</span></div>
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Recaudado por
+                            Servicios</div>
+                        <div class="text-3xl font-black text-emerald-600 mt-1">${{ number_format($totalCollected, 2) }}
+                            <span class="text-xs font-normal text-slate-400">MXN</span></div>
                     </div>
                 </div>
-                <div class="text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 self-start sm:self-auto">
+                <div
+                    class="text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 self-start sm:self-auto">
                     Calculado a partir de solicitudes con pago verificado o completadas.
                 </div>
             </div>
@@ -283,15 +289,15 @@
                             datasets: [{
                                 label: 'Calificación Promedio',
                                 data: [
-                                                                        {{ $surveyAverages->p1 ?? 0 }},
-                                                                        {{ $surveyAverages->p2 ?? 0 }},
-                                                                        {{ $surveyAverages->p3 ?? 0 }},
-                                                                        {{ $surveyAverages->p4 ?? 0 }},
-                                                                        {{ $surveyAverages->p5 ?? 0 }},
-                                                                        {{ $surveyAverages->p6 ?? 0 }},
-                                                                        {{ $surveyAverages->p7 ?? 0 }},
-                                                                        {{ $surveyAverages->p8 ?? 0 }},
-                                                                        {{ $surveyAverages->p9 ?? 0 }},
+                                                                                {{ $surveyAverages->p1 ?? 0 }},
+                                                                                {{ $surveyAverages->p2 ?? 0 }},
+                                                                                {{ $surveyAverages->p3 ?? 0 }},
+                                                                                {{ $surveyAverages->p4 ?? 0 }},
+                                                                                {{ $surveyAverages->p5 ?? 0 }},
+                                                                                {{ $surveyAverages->p6 ?? 0 }},
+                                                                                {{ $surveyAverages->p7 ?? 0 }},
+                                                                                {{ $surveyAverages->p8 ?? 0 }},
+                                                                                {{ $surveyAverages->p9 ?? 0 }},
                                     {{ $surveyAverages->p10 ?? 0 }}
                                 ],
                                 backgroundColor: 'rgba(188, 149, 91, 0.75)', // dorado-ocre
@@ -419,7 +425,7 @@
                             }
                         });
                     @endif
-                                });
+                                    });
         </script>
     @endif
 </x-app-layout>

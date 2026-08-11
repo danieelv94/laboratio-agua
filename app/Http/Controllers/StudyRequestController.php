@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\StudyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StudyRequestedMail;
 
 class StudyRequestController extends Controller
 {
@@ -110,6 +112,13 @@ class StudyRequestController extends Controller
 
         // 3. Save
         $studyRequest = StudyRequest::create($validated);
+
+        // Send confirmation email
+        try {
+            Mail::to($studyRequest->email)->send(new StudyRequestedMail($studyRequest));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error sending StudyRequestedMail: " . $e->getMessage());
+        }
 
         // 4. Redirect to confirmation page
         return redirect()->route('solicitud.ver', ['reference' => $studyRequest->referencia_bancaria])

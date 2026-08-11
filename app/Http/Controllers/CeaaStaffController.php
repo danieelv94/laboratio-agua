@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\StudyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StudyCompletedMail;
 
 class CeaaStaffController extends Controller
 {
@@ -112,7 +114,17 @@ class CeaaStaffController extends Controller
             $data['archivo_resultados'] = $path;
         }
 
+        $oldStatus = $studyRequest->status;
         $studyRequest->update($data);
+
+        // Notify user if study is newly completed
+        if ($studyRequest->status === 'completado' && $oldStatus !== 'completado') {
+            try {
+                Mail::to($studyRequest->email)->send(new StudyCompletedMail($studyRequest));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Error sending StudyCompletedMail: " . $e->getMessage());
+            }
+        }
 
         return redirect()->route('dashboard.solicitud', $studyRequest->id)
                          ->with('success', 'La solicitud ha sido actualizada correctamente.');
