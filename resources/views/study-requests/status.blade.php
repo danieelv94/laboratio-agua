@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Consultar Folio | CEAA</title>
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
-    <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('favicon.png') }}?v=2" type="image/png">
+    <link rel="icon" href="{{ asset('favicon.png') }}?v=2" type="image/png">
     <!-- Fonts -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap">
