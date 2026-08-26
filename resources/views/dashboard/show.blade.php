@@ -247,6 +247,36 @@
 
                 <!-- Right Column: Administrative Portal Actions -->
                 <div class="space-y-6">
+
+                    <!-- Tarjeta de Comprobante de Pago -->
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-guinda-ceaa font-title">Comprobante de Pago</h3>
+                            <p class="text-[10px] text-slate-500">Recibo digital de pago subido por el ciudadano.</p>
+                        </div>
+                        @if($studyRequest->comprobante_pago)
+                            <div class="bg-[#BC955B]/10 p-3.5 rounded-xl border border-dorado-ocre/20 space-y-2">
+                                <div class="flex items-center space-x-2 text-xs">
+                                    <svg class="text-guinda-ceaa flex-shrink-0" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="font-bold text-guinda-ceaa uppercase tracking-wider text-[9px]">Comprobante de Pago Cargado</span>
+                                </div>
+                                <p class="text-[10px] text-slate-600 leading-normal">El solicitante cargó su recibo de pago digital para su verificación por parte del staff.</p>
+                                <div class="flex space-x-2">
+                                    <a href="{{ asset('storage/' . $studyRequest->comprobante_pago) }}" target="_blank" class="flex-1 text-center py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-[10px] font-bold uppercase rounded-lg shadow-sm transition">
+                                        Ver Online
+                                    </a>
+                                    <a href="{{ route('dashboard.solicitud.descargar-comprobante', $studyRequest->id) }}" class="flex-1 text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold uppercase rounded-lg transition border border-slate-200">
+                                        Descargar
+                                    </a>
+                                </div>
+                            </div>
+                        @else
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-center">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sin Comprobante de Pago</span>
+                                <p class="text-[10px] text-slate-500 leading-normal mt-1">El solicitante aún no ha cargado su comprobante de pago en el portal público.</p>
+                            </div>
+                        @endif
+                    </div>
                     
                     <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-6">
                         <div class="border-b border-slate-100 pb-3">
@@ -280,27 +310,7 @@
                             <form x-data="{ showRejection: false }" action="{{ route('dashboard.solicitud.actualizar', $studyRequest->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
                                 @csrf
 
-                                <!-- Comprobante de Pago Subido (only show if pendiente or pago_verificado) -->
-                                @if(in_array($studyRequest->status, ['pendiente', 'pago_verificado']))
-                                    @if($studyRequest->comprobante_pago)
-                                        <div class="bg-[#BC955B]/10 p-3.5 rounded-xl border border-dorado-ocre/20 space-y-2">
-                                            <div class="flex items-center space-x-2">
-                                                <svg class="text-guinda-ceaa flex-shrink-0" width="20" height="20" style="width: 20px; height: 20px; min-width: 20px; min-height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                <span class="font-bold text-guinda-ceaa uppercase tracking-wider text-[9px]">Comprobante de Pago Cargado</span>
-                                            </div>
-                                            <p class="text-[10px] text-slate-600 leading-normal">El solicitante cargó su recibo de pago digital para su verificación por parte del staff.</p>
-                                            <a href="{{ asset('storage/' . $studyRequest->comprobante_pago) }}" target="_blank" class="inline-flex items-center text-[10px] font-bold text-guinda-ceaa hover:underline space-x-0.5">
-                                                <span>Ver Comprobante</span>
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                            </a>
-                                        </div>
-                                    @else
-                                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-center">
-                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sin Comprobante de Pago</span>
-                                            <p class="text-[10px] text-slate-500 leading-normal mt-1">El solicitante aún no ha cargado su comprobante de pago en el portal público.</p>
-                                        </div>
-                                    @endif
-                                @endif
+
 
                                 <!-- Paso 1: PENDIENTE DE PAGO -->
                                 @if($studyRequest->status === 'pendiente')

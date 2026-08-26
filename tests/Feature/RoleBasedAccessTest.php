@@ -299,4 +299,68 @@ class RoleBasedAccessTest extends TestCase
         $this->assertNotEquals('vouchers/old.pdf', $req->comprobante_pago);
         Storage::disk('public')->assertExists($req->comprobante_pago);
     }
+
+    /**
+     * Test that administration role can view the payment voucher section on show view.
+     */
+    public function test_administracion_role_can_view_payment_voucher_section()
+    {
+        $req = $this->createBaseRequest([
+            'rfc' => 'XAXX010101000',
+            'razon_social' => 'Razon Social Test',
+            'comprobante_pago' => 'vouchers/test_comprobante.pdf'
+        ]);
+
+        $billingUser = User::factory()->create(['role' => 'administracion']);
+
+        $response = $this->actingAs($billingUser)
+            ->get(route('dashboard.solicitud', $req->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Comprobante de Pago');
+        $response->assertSee('Comprobante de Pago Cargado');
+        $response->assertSee(asset('storage/vouchers/test_comprobante.pdf'));
+        $response->assertSee(route('dashboard.solicitud.descargar-comprobante', $req->id));
+    }
+
+    /**
+     * Test that authenticated users with valid roles can download the payment voucher.
+     */
+    public function test_authenticated_roles_can_download_payment_voucher()
+    {
+        Storage::fake('public');
+        
+        // Store a fake file in vouchers/
+        $file = UploadedFile::fake()->create('comprobante.pdf', 100, 'application/pdf');
+        $path = Storage::disk('public')->putFileAs('vouchers', $file, 'comprobante_test.pdf');
+
+        $req = $this->createBaseRequest([
+            'comprobante_pago' => $path
+        ]);
+
+        $roles = ['administracion', 'laboratorio', 'admin'];
+
+        foreach ($roles as $role) {
+            $user = User::factory()->create(['role' => $role]);
+
+            $response = $this->actingAs($user)
+                ->get(route('dashboard.solicitud.descargar-comprobante', $req->id));
+
+            $response->assertStatus(200);
+            $response->assertHeader('Content-Disposition', 'attachment; filename=comprobante_' . $req->referencia_bancaria . '.pdf');
+        }
+    }
+
+    /**
+     * Test that guests cannot download the payment voucher.
+     */
+    public function test_guests_cannot_download_payment_voucher()
+    {
+        $req = $this->createBaseRequest([
+            'comprobante_pago' => 'vouchers/test.pdf'
+        ]);
+
+        $response = $this->get(route('dashboard.solicitud.descargar-comprobante', $req->id));
+        $response->assertRedirect(route('login'));
+    }
 }

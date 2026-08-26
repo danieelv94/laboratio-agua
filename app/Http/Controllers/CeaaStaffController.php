@@ -264,4 +264,25 @@ class CeaaStaffController extends Controller
             'recentFeedback'
         ));
     }
+
+    /**
+     * Download the payment voucher for a request.
+     */
+    public function downloadVoucher(StudyRequest $studyRequest)
+    {
+        if (!$studyRequest->comprobante_pago) {
+            abort(404, 'No se ha cargado ningún comprobante de pago para esta solicitud.');
+        }
+
+        $path = $studyRequest->comprobante_pago;
+
+        if (!Storage::disk('public')->exists($path)) {
+            abort(404, 'El archivo del comprobante de pago no existe.');
+        }
+
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $filename = 'comprobante_' . $studyRequest->referencia_bancaria . '.' . $extension;
+
+        return Storage::disk('public')->download($path, $filename);
+    }
 }

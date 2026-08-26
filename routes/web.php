@@ -40,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/solicitud/{studyRequest}/factura', [CeaaStaffController::class, 'uploadInvoice'])
         ->middleware('role:admin,administracion')
         ->name('dashboard.solicitud.factura');
+
+    Route::get('/dashboard/solicitud/{studyRequest}/comprobante/descargar', [CeaaStaffController::class, 'downloadVoucher'])
+        ->name('dashboard.solicitud.descargar-comprobante');
 });
 
 require __DIR__.'/auth.php';
