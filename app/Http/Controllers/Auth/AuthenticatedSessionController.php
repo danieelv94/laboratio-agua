@@ -32,6 +32,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        \App\Models\ActivityLog::log('login', 'Usuario inició sesión: ' . auth()->user()->email);
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
@@ -43,6 +45,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
+        if (Auth::check()) {
+            \App\Models\ActivityLog::log('logout', 'Usuario cerró sesión: ' . Auth::user()->email);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

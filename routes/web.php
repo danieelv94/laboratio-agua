@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\StudyRequestController;
 use App\Http\Controllers\CeaaStaffController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,7 @@ Route::post('/solicitud/{reference}/comprobante', [StudyRequestController::class
 Route::post('/solicitud/{reference}/encuesta', [StudyRequestController::class, 'submitSurvey'])->name('solicitud.encuesta');
 
 // Administrative routes (CEAA Staff)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'suspended'])->group(function () {
     Route::get('/dashboard', [CeaaStaffController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/solicitud/{studyRequest}', [CeaaStaffController::class, 'show'])->name('dashboard.solicitud');
     Route::get('/dashboard/metricas', [CeaaStaffController::class, 'metrics'])
@@ -43,6 +44,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard/solicitud/{studyRequest}/comprobante/descargar', [CeaaStaffController::class, 'downloadVoucher'])
         ->name('dashboard.solicitud.descargar-comprobante');
+
+    // User management & logs (Admin role only)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/dashboard/usuarios', [UserController::class, 'index'])->name('dashboard.usuarios');
+        Route::get('/dashboard/usuarios/crear', [UserController::class, 'create'])->name('dashboard.usuarios.crear');
+        Route::post('/dashboard/usuarios/crear', [UserController::class, 'store'])->name('dashboard.usuarios.guardar');
+        Route::get('/dashboard/usuarios/{user}/editar', [UserController::class, 'edit'])->name('dashboard.usuarios.editar');
+        Route::post('/dashboard/usuarios/{user}/editar', [UserController::class, 'update'])->name('dashboard.usuarios.actualizar');
+        Route::post('/dashboard/usuarios/{user}/suspender', [UserController::class, 'toggleSuspension'])->name('dashboard.usuarios.suspender');
+        Route::get('/dashboard/bitacora', [UserController::class, 'activityLogs'])->name('dashboard.bitacora');
+    });
 });
 
 require __DIR__.'/auth.php';

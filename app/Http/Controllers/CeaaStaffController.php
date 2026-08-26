@@ -117,6 +117,8 @@ class CeaaStaffController extends Controller
         $oldStatus = $studyRequest->status;
         $studyRequest->update($data);
 
+        \App\Models\ActivityLog::log('study_request_updated', "Solicitud {$studyRequest->referencia_bancaria} actualizada. Estado anterior: {$oldStatus}, Estado nuevo: {$studyRequest->status}");
+
         // Notify user if study is newly completed
         if ($studyRequest->status === 'completado' && $oldStatus !== 'completado') {
             try {
@@ -160,6 +162,8 @@ class CeaaStaffController extends Controller
         }
 
         $studyRequest->update($data);
+
+        \App\Models\ActivityLog::log('invoice_uploaded', "Factura ZIP cargada para solicitud: {$studyRequest->referencia_bancaria}");
 
         return redirect()->route('dashboard.solicitud', $studyRequest->id)
                          ->with('success', 'La factura ha sido cargada correctamente.');

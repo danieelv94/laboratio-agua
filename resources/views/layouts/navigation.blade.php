@@ -21,8 +21,11 @@
                         </x-nav-link>
                     @endif
                     @if(Auth::user()->role === 'admin')
-                        <x-nav-link :href="route('register')" :active="request()->routeIs('register')">
-                            {{ __('Registrar Usuario') }}
+                        <x-nav-link :href="route('dashboard.usuarios')" :active="request()->routeIs('dashboard.usuarios') || request()->routeIs('dashboard.usuarios.*')">
+                            {{ __('Usuarios') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('dashboard.bitacora')" :active="request()->routeIs('dashboard.bitacora')">
+                            {{ __('Bitácora') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -89,8 +92,11 @@
                 </x-responsive-nav-link>
             @endif
             @if(Auth::user()->role === 'admin')
-                <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">
-                    {{ __('Registrar Usuario') }}
+                <x-responsive-nav-link :href="route('dashboard.usuarios')" :active="request()->routeIs('dashboard.usuarios') || request()->routeIs('dashboard.usuarios.*')">
+                    {{ __('Usuarios') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dashboard.bitacora')" :active="request()->routeIs('dashboard.bitacora')">
+                    {{ __('Bitácora') }}
                 </x-responsive-nav-link>
             @endif
         </div>
