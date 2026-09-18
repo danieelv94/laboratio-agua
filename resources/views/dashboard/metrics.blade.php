@@ -29,7 +29,8 @@
                         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Recaudado por
                             Servicios</div>
                         <div class="text-3xl font-black text-emerald-600 mt-1">${{ number_format($totalCollected, 2) }}
-                            <span class="text-xs font-normal text-slate-400">MXN</span></div>
+                            <span class="text-xs font-normal text-slate-400">MXN</span>
+                        </div>
                     </div>
                 </div>
                 <div
@@ -87,7 +88,8 @@
                         </svg>
                     </div>
                     <div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Muestras Analizadas
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Solicitudes de
+                            Análisis
                         </div>
                         <div class="text-2xl font-black text-slate-800 mt-0.5">{{ $totalSamples }}</div>
                     </div>
@@ -289,15 +291,15 @@
                             datasets: [{
                                 label: 'Calificación Promedio',
                                 data: [
-                                                                                {{ $surveyAverages->p1 ?? 0 }},
-                                                                                {{ $surveyAverages->p2 ?? 0 }},
-                                                                                {{ $surveyAverages->p3 ?? 0 }},
-                                                                                {{ $surveyAverages->p4 ?? 0 }},
-                                                                                {{ $surveyAverages->p5 ?? 0 }},
-                                                                                {{ $surveyAverages->p6 ?? 0 }},
-                                                                                {{ $surveyAverages->p7 ?? 0 }},
-                                                                                {{ $surveyAverages->p8 ?? 0 }},
-                                                                                {{ $surveyAverages->p9 ?? 0 }},
+                                                                                        {{ $surveyAverages->p1 ?? 0 }},
+                                                                                        {{ $surveyAverages->p2 ?? 0 }},
+                                                                                        {{ $surveyAverages->p3 ?? 0 }},
+                                                                                        {{ $surveyAverages->p4 ?? 0 }},
+                                                                                        {{ $surveyAverages->p5 ?? 0 }},
+                                                                                        {{ $surveyAverages->p6 ?? 0 }},
+                                                                                        {{ $surveyAverages->p7 ?? 0 }},
+                                                                                        {{ $surveyAverages->p8 ?? 0 }},
+                                                                                        {{ $surveyAverages->p9 ?? 0 }},
                                     {{ $surveyAverages->p10 ?? 0 }}
                                 ],
                                 backgroundColor: 'rgba(188, 149, 91, 0.75)', // dorado-ocre
@@ -425,7 +427,7 @@
                             }
                         });
                     @endif
-                                    });
+                                        });
         </script>
     @endif
 </x-app-layout>
