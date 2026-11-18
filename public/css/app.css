@@ -899,6 +899,9 @@ input:where([type='file']):focus {
 .h-full {
   height: 100%;
 }
+.h-3\.5 {
+  height: 0.875rem;
+}
 .max-h-60 {
   max-height: 15rem;
 }
@@ -953,8 +956,17 @@ input:where([type='file']):focus {
 .w-full {
   width: 100%;
 }
+.w-3\.5 {
+  width: 0.875rem;
+}
 .min-w-full {
   min-width: 100%;
+}
+.min-w-\[200px\] {
+  min-width: 200px;
+}
+.min-w-\[28px\] {
+  min-width: 28px;
 }
 .max-w-2xl {
   max-width: 42rem;
@@ -1559,6 +1571,31 @@ input:where([type='file']):focus {
 .bg-white\/5 {
   background-color: rgb(255 255 255 / 0.05);
 }
+.bg-amber-50\/40 {
+  background-color: rgb(255 251 235 / 0.4);
+}
+.bg-emerald-50\/40 {
+  background-color: rgb(236 253 245 / 0.4);
+}
+.bg-orange-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 247 237 / var(--tw-bg-opacity, 1));
+}
+.bg-orange-50\/40 {
+  background-color: rgb(255 247 237 / 0.4);
+}
+.bg-red-50\/40 {
+  background-color: rgb(254 242 242 / 0.4);
+}
+.bg-slate-50\/30 {
+  background-color: rgb(248 250 252 / 0.3);
+}
+.bg-slate-50\/40 {
+  background-color: rgb(248 250 252 / 0.4);
+}
+.bg-teal-50\/40 {
+  background-color: rgb(240 253 250 / 0.4);
+}
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -1737,6 +1774,10 @@ input:where([type='file']):focus {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
+.py-3\.5 {
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -1888,6 +1929,9 @@ input:where([type='file']):focus {
 }
 .leading-tight {
   line-height: 1.25;
+}
+.leading-snug {
+  line-height: 1.375;
 }
 .tracking-tight {
   letter-spacing: -0.025em;
@@ -2071,6 +2115,10 @@ input:where([type='file']):focus {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+.text-orange-700 {
+  --tw-text-opacity: 1;
+  color: rgb(194 65 12 / var(--tw-text-opacity, 1));
 }
 .underline {
   text-decoration-line: underline;
@@ -2337,6 +2385,10 @@ input:where([type='file']):focus {
 }
 .hover\:bg-white\/70:hover {
   background-color: rgb(255 255 255 / 0.7);
+}
+.hover\:bg-guinda-ceaa:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(105 27 49 / var(--tw-bg-opacity, 1));
 }
 .hover\:from-amber-600:hover {
   --tw-gradient-from: #d97706 var(--tw-gradient-from-position);

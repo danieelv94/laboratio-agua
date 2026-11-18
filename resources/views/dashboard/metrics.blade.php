@@ -192,23 +192,129 @@
 
             </div>
 
-            <!-- List of Questions Reference -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                <h3
-                    class="font-bold text-sm text-slate-800 tracking-tight border-b pb-3 border-slate-100 mb-4 font-title">
-                    Referencia de Preguntas Evaluadas</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs text-slate-600">
-                    <div><span class="font-bold text-guinda-ceaa">1.</span> Facilidad para acceder al servicio</div>
-                    <div><span class="font-bold text-guinda-ceaa">2.</span> Cumplimiento del tiempo prometido</div>
-                    <div><span class="font-bold text-guinda-ceaa">3.</span> Cumplimiento de requerimientos técnicos
+            <!-- List of Questions Reference & Export -->
+            @php
+                $evaluatedQuestions = [
+                    1 => 'Facilidad para acceder al servicio',
+                    2 => 'Cumplimiento del tiempo prometido',
+                    3 => 'Cumplimiento de requerimientos técnicos',
+                    4 => 'Trato amable del personal',
+                    5 => 'Competencia del inspector técnico',
+                    6 => 'Calidad del trabajo en la inspección',
+                    7 => 'Adecuación de métodos de inspección',
+                    8 => 'Calidad de la atención en general',
+                    9 => 'Calidad del servicio en general',
+                    10 => 'Probabilidad de recomendación',
+                ];
+            @endphp
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/40">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800 tracking-tight font-title">
+                            Referencia de Preguntas Evaluadas y Desglose de Respuestas
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Distribución detallada por nivel de satisfacción ({{ $totalSurveys }} {{ $totalSurveys === 1 ? 'encuesta registrada' : 'encuestas registradas' }})
+                        </p>
                     </div>
-                    <div><span class="font-bold text-guinda-ceaa">4.</span> Trato amable del personal</div>
-                    <div><span class="font-bold text-guinda-ceaa">5.</span> Competencia del inspector técnico</div>
-                    <div><span class="font-bold text-guinda-ceaa">6.</span> Calidad del trabajo en la inspección</div>
-                    <div><span class="font-bold text-guinda-ceaa">7.</span> Adecuación de métodos de inspección</div>
-                    <div><span class="font-bold text-guinda-ceaa">8.</span> Calidad de la atención en general</div>
-                    <div><span class="font-bold text-guinda-ceaa">9.</span> Calidad del servicio en general</div>
-                    <div><span class="font-bold text-guinda-ceaa">10.</span> Probabilidad de recomendación</div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ route('dashboard.metricas.exportar') }}"
+                            class="inline-flex items-center space-x-2 px-4 py-2.5 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            <span>Exportar Todo (CSV / Excel)</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/30">
+                                <th class="py-3.5 px-6">Pregunta Evaluada</th>
+                                <th class="py-3.5 px-4 text-center">Promedio</th>
+                                <th class="py-3.5 px-3 text-center text-emerald-700 bg-emerald-50/40">Excelente (5)</th>
+                                <th class="py-3.5 px-3 text-center text-teal-700 bg-teal-50/40">Bueno (4)</th>
+                                <th class="py-3.5 px-3 text-center text-amber-700 bg-amber-50/40">Regular (3)</th>
+                                <th class="py-3.5 px-3 text-center text-orange-700 bg-orange-50/40">Malo (2)</th>
+                                <th class="py-3.5 px-3 text-center text-red-700 bg-red-50/40">Muy malo (1)</th>
+                                <th class="py-3.5 px-6 text-right">Exportar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            @foreach($evaluatedQuestions as $num => $questionText)
+                                @php
+                                    $colProp = "p{$num}";
+                                    $qAvg = $surveyAverages->$colProp ?? 0;
+                                    $dist = $questionDistributions[$num] ?? [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+                                    $pct = $totalSurveys > 0 ? round(($qAvg / 5) * 100) : 0;
+                                @endphp
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-start space-x-3">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-guinda-ceaa/10 text-guinda-ceaa font-extrabold text-[11px] flex-shrink-0 mt-0.5">
+                                                P{{ $num }}
+                                            </span>
+                                            <div class="space-y-1.5 flex-1 min-w-[200px]">
+                                                <span class="font-semibold text-slate-800 block leading-snug">{{ $questionText }}</span>
+                                                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                    <div class="bg-dorado-ocre h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-arena-claro/20 text-guinda-ceaa">
+                                            <svg class="w-3.5 h-3.5 text-dorado-ocre fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                            <span>{{ number_format($qAvg, 2) }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-3 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-md font-bold {{ $dist[5] > 0 ? 'bg-emerald-50 text-emerald-700' : 'text-slate-300' }}">
+                                            {{ $dist[5] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-3 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-md font-bold {{ $dist[4] > 0 ? 'bg-teal-50 text-teal-700' : 'text-slate-300' }}">
+                                            {{ $dist[4] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-3 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-md font-bold {{ $dist[3] > 0 ? 'bg-amber-50 text-amber-700' : 'text-slate-300' }}">
+                                            {{ $dist[3] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-3 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-md font-bold {{ $dist[2] > 0 ? 'bg-orange-50 text-orange-700' : 'text-slate-300' }}">
+                                            {{ $dist[2] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-3 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-md font-bold {{ $dist[1] > 0 ? 'bg-red-50 text-red-700' : 'text-slate-300' }}">
+                                            {{ $dist[1] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6 text-right whitespace-nowrap">
+                                        <a href="{{ route('dashboard.metricas.exportar', ['pregunta' => $num]) }}"
+                                            title="Exportar respuestas de la pregunta {{ $num }}"
+                                            class="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-guinda-ceaa hover:text-white text-slate-700 rounded-lg text-[11px] font-bold transition">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                                                </path>
+                                            </svg>
+                                            <span>CSV</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

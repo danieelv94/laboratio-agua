@@ -32,6 +32,9 @@ Route::middleware(['auth', 'suspended'])->group(function () {
     Route::get('/dashboard/metricas', [CeaaStaffController::class, 'metrics'])
         ->middleware('role:admin,laboratorio')
         ->name('dashboard.metricas');
+    Route::get('/dashboard/metricas/exportar', [CeaaStaffController::class, 'exportSurveyResponses'])
+        ->middleware('role:admin,laboratorio')
+        ->name('dashboard.metricas.exportar');
     
     // Actions restricted by role
     Route::post('/dashboard/solicitud/{studyRequest}/actualizar', [CeaaStaffController::class, 'update'])

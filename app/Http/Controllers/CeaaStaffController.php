@@ -192,6 +192,24 @@ class CeaaStaffController extends Controller
                 AVG(encuesta_p10) as p10
             ')->first();
 
+        // Distribution per question (counts of ratings 1 to 5 for each question)
+        $surveyRecords = StudyRequest::where('encuesta_respondida', true)->get([
+            'encuesta_p1', 'encuesta_p2', 'encuesta_p3', 'encuesta_p4', 'encuesta_p5',
+            'encuesta_p6', 'encuesta_p7', 'encuesta_p8', 'encuesta_p9', 'encuesta_p10',
+        ]);
+
+        $questionDistributions = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $col = "encuesta_p{$i}";
+            $questionDistributions[$i] = [
+                5 => $surveyRecords->where($col, 5)->count(),
+                4 => $surveyRecords->where($col, 4)->count(),
+                3 => $surveyRecords->where($col, 3)->count(),
+                2 => $surveyRecords->where($col, 2)->count(),
+                1 => $surveyRecords->where($col, 1)->count(),
+            ];
+        }
+
         // 2. Study type and sample calculations
         // Query only requests that are not rejected to get clean analytics
         $requests = StudyRequest::where('status', '!=', 'rechazado')->get([
@@ -258,6 +276,7 @@ class CeaaStaffController extends Controller
             'totalSurveys',
             'overallAverage',
             'surveyAverages',
+            'questionDistributions',
             'totalSamples',
             'totalCollected',
             'sampleTypeCounts',
@@ -267,6 +286,134 @@ class CeaaStaffController extends Controller
             'monthlyCounts',
             'recentFeedback'
         ));
+    }
+
+    /**
+     * Export survey responses and question breakdown as a CSV (Excel-compatible) file.
+     */
+    public function exportSurveyResponses(Request $request)
+    {
+        $questionFilter = $request->query('pregunta'); // Optional: 1..10
+        $questions = [
+            1 => '1. Facilidad para acceder al servicio',
+            2 => '2. Cumplimiento del tiempo prometido',
+            3 => '3. Cumplimiento de requerimientos técnicos',
+            4 => '4. Trato amable del personal',
+            5 => '5. Competencia del inspector técnico',
+            6 => '6. Calidad del trabajo en la inspección',
+            7 => '7. Adecuación de métodos de inspección',
+            8 => '8. Calidad de la atención en general',
+            9 => '9. Calidad del servicio en general',
+            10 => '10. Probabilidad de recomendación',
+        ];
+
+        $ratingLabels = [
+            5 => 'Excelente (5)',
+            4 => 'Bueno (4)',
+            3 => 'Regular (3)',
+            2 => 'Malo (2)',
+            1 => 'Muy malo (1)',
+        ];
+
+        $surveys = StudyRequest::where('encuesta_respondida', true)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $filenameSuffix = ($questionFilter && isset($questions[(int) $questionFilter]))
+            ? "_pregunta_{$questionFilter}"
+            : '_completo';
+        $filename = 'encuestas_satisfaccion' . $filenameSuffix . '_' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        return response()->stream(function () use ($surveys, $questions, $ratingLabels, $questionFilter) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM for proper Excel rendering of Spanish accents
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            $selectedQuestions = ($questionFilter && isset($questions[(int) $questionFilter]))
+                ? [(int) $questionFilter => $questions[(int) $questionFilter]]
+                : $questions;
+
+            // --- SECTION 1: Summary Table per Question ---
+            fputcsv($handle, ['RESUMEN DE EVALUACIÓN POR PREGUNTA (LABORATORIO CEAA)']);
+            fputcsv($handle, [
+                'No.',
+                'Pregunta Evaluada',
+                'Promedio (1-5)',
+                'Excelente (5)',
+                'Bueno (4)',
+                'Regular (3)',
+                'Malo (2)',
+                'Muy malo (1)',
+                'Total Respuestas',
+            ]);
+
+            foreach ($selectedQuestions as $num => $label) {
+                $col = "encuesta_p{$num}";
+                $avg = $surveys->count() > 0 ? round($surveys->avg($col), 2) : 0;
+                fputcsv($handle, [
+                    "P{$num}",
+                    $label,
+                    number_format($avg, 2),
+                    $surveys->where($col, 5)->count(),
+                    $surveys->where($col, 4)->count(),
+                    $surveys->where($col, 3)->count(),
+                    $surveys->where($col, 2)->count(),
+                    $surveys->where($col, 1)->count(),
+                    $surveys->count(),
+                ]);
+            }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['DETALLE DE RESPUESTAS POR SOLICITUD']);
+
+            // --- SECTION 2: Individual Survey Responses ---
+            $detailHeader = [
+                'Folio / Referencia',
+                'Solicitante',
+                'Representante',
+                'Fecha de Respuesta',
+            ];
+
+            foreach ($selectedQuestions as $num => $label) {
+                $detailHeader[] = $label . ' (Valor)';
+                $detailHeader[] = $label . ' (Nivel)';
+            }
+
+            $detailHeader[] = 'Promedio General';
+            $detailHeader[] = 'Recomendaciones de Mejora';
+            $detailHeader[] = 'Comentarios Adicionales';
+
+            fputcsv($handle, $detailHeader);
+
+            foreach ($surveys as $s) {
+                $row = [
+                    $s->referencia_bancaria,
+                    $s->solicitante,
+                    $s->representante,
+                    $s->updated_at ? $s->updated_at->format('d/m/Y H:i') : '',
+                ];
+
+                foreach ($selectedQuestions as $num => $label) {
+                    $val = $s->{"encuesta_p{$num}"};
+                    $row[] = $val;
+                    $row[] = $ratingLabels[$val] ?? 'N/A';
+                }
+
+                $row[] = number_format($s->encuesta_promedio, 2);
+                $row[] = $s->encuesta_mejoras ?? '';
+                $row[] = $s->encuesta_comentarios ?? '';
+
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
     }
 
     /**
