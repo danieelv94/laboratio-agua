@@ -225,7 +225,16 @@
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                 </path>
                             </svg>
-                            <span>Exportar Todo (CSV / Excel)</span>
+                            <span>Exportar Todo (CSV)</span>
+                        </a>
+                        <a href="{{ route('dashboard.metricas.exportar-word') }}"
+                            class="inline-flex items-center space-x-2 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            <span>Exportar Todo (Word FC-SG-LCH2O/11)</span>
                         </a>
                     </div>
                 </div>
@@ -300,16 +309,28 @@
                                         </span>
                                     </td>
                                     <td class="py-4 px-6 text-right whitespace-nowrap">
-                                        <a href="{{ route('dashboard.metricas.exportar', ['pregunta' => $num]) }}"
-                                            title="Exportar respuestas de la pregunta {{ $num }}"
-                                            class="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-guinda-ceaa hover:text-white text-slate-700 rounded-lg text-[11px] font-bold transition">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
-                                                </path>
-                                            </svg>
-                                            <span>CSV</span>
-                                        </a>
+                                        <div class="inline-flex items-center space-x-1.5">
+                                            <a href="{{ route('dashboard.metricas.exportar', ['pregunta' => $num]) }}"
+                                                title="Exportar respuestas de la pregunta {{ $num }} en CSV"
+                                                class="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-slate-100 hover:bg-guinda-ceaa hover:text-white text-slate-700 rounded-lg text-[11px] font-bold transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                                                    </path>
+                                                </svg>
+                                                <span>CSV</span>
+                                            </a>
+                                            <a href="{{ route('dashboard.metricas.exportar-word', ['pregunta' => $num]) }}"
+                                                title="Exportar respuestas de la pregunta {{ $num }} en formato Word (FC-SG-LCH2O/11)"
+                                                class="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-700 hover:text-white text-blue-700 rounded-lg text-[11px] font-bold transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                    </path>
+                                                </svg>
+                                                <span>Word</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -349,6 +370,19 @@
                                         </svg>
                                         <span>{{ number_format($feedback->encuesta_promedio, 2) }}</span>
                                     </div>
+                                    <span class="text-slate-300">&bull;</span>
+                                    <div class="inline-flex items-center space-x-1">
+                                        <a href="{{ route('dashboard.solicitud.encuesta.exportar', [$feedback->id, 'formato' => 'csv']) }}"
+                                            title="Exportar encuesta de {{ $feedback->referencia_bancaria }} en CSV"
+                                            class="px-2 py-1 bg-slate-100 hover:bg-guinda-ceaa hover:text-white text-slate-700 rounded-md text-[10px] font-bold transition">
+                                            CSV
+                                        </a>
+                                        <a href="{{ route('dashboard.solicitud.encuesta.exportar', [$feedback->id, 'formato' => 'word']) }}"
+                                            title="Exportar encuesta de {{ $feedback->referencia_bancaria }} en formato Word FC-SG-LCH2O/11"
+                                            class="px-2 py-1 bg-blue-50 hover:bg-blue-700 hover:text-white text-blue-700 rounded-md text-[10px] font-bold transition">
+                                            Word
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 
@@ -376,6 +410,97 @@
                             No se han recibido comentarios ni sugerencias en las encuestas de satisfacción.
                         </div>
                     @endforelse
+                </div>
+            </div>
+
+            <!-- Individual Answered Surveys Table (Export per Client in CSV or Word FC-SG-LCH2O/11) -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-slate-50/40">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800 tracking-tight font-title">
+                            Exportación Individual de Encuestas por Solicitud (Formato FC-SG-LCH2O/11)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Descargue la cédula oficial de encuesta de cada cliente en formato Word (.doc) o CSV
+                        </p>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                        {{ $answeredSurveys->count() }} {{ $answeredSurveys->count() === 1 ? 'encuesta disponible' : 'encuestas disponibles' }}
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/30 sticky top-0">
+                                <th class="py-3.5 px-6">Folio / Informe</th>
+                                <th class="py-3.5 px-4">Cliente / Solicitante</th>
+                                <th class="py-3.5 px-4">Contacto</th>
+                                <th class="py-3.5 px-4 text-center">Fecha</th>
+                                <th class="py-3.5 px-4 text-center">Promedio</th>
+                                <th class="py-3.5 px-6 text-right">Exportar Individualmente</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            @forelse($answeredSurveys as $surveyItem)
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3.5 px-6 font-bold text-guinda-ceaa whitespace-nowrap">
+                                        <a href="{{ route('dashboard.solicitud', $surveyItem->id) }}" class="hover:underline">
+                                            {{ $surveyItem->referencia_bancaria }}
+                                        </a>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-semibold text-slate-800">{{ $surveyItem->solicitante }}</div>
+                                        @if($surveyItem->representante)
+                                            <div class="text-[10px] text-slate-400">{{ $surveyItem->representante }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-500">
+                                        <div>{{ $surveyItem->email }}</div>
+                                        @if($surveyItem->telefono)
+                                            <div class="text-[10px] text-slate-400">{{ $surveyItem->telefono }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center text-slate-500 whitespace-nowrap">
+                                        {{ $surveyItem->updated_at ? $surveyItem->updated_at->format('d/m/Y H:i') : '-' }}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-arena-claro/20 text-guinda-ceaa">
+                                            <span>{{ number_format($surveyItem->encuesta_promedio, 2) }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-6 text-right whitespace-nowrap">
+                                        <div class="inline-flex items-center space-x-1.5">
+                                            <a href="{{ route('dashboard.solicitud.encuesta.exportar', [$surveyItem->id, 'formato' => 'csv']) }}"
+                                                class="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-slate-100 hover:bg-guinda-ceaa hover:text-white text-slate-700 rounded-lg text-[11px] font-bold transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                                                    </path>
+                                                </svg>
+                                                <span>CSV</span>
+                                            </a>
+                                            <a href="{{ route('dashboard.solicitud.encuesta.exportar', [$surveyItem->id, 'formato' => 'word']) }}"
+                                                class="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-700 hover:text-white text-blue-700 rounded-lg text-[11px] font-bold transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                    </path>
+                                                </svg>
+                                                <span>Word (FC-SG-LCH2O/11)</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="py-8 text-center text-xs text-slate-400 italic">
+                                        Aún no hay encuestas respondidas para exportar.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

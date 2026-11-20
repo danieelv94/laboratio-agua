@@ -35,6 +35,12 @@ Route::middleware(['auth', 'suspended'])->group(function () {
     Route::get('/dashboard/metricas/exportar', [CeaaStaffController::class, 'exportSurveyResponses'])
         ->middleware('role:admin,laboratorio')
         ->name('dashboard.metricas.exportar');
+    Route::get('/dashboard/metricas/exportar-word', [CeaaStaffController::class, 'exportAllSurveysWord'])
+        ->middleware('role:admin,laboratorio')
+        ->name('dashboard.metricas.exportar-word');
+    Route::get('/dashboard/solicitud/{studyRequest}/encuesta/exportar', [CeaaStaffController::class, 'exportSingleSurvey'])
+        ->middleware('role:admin,laboratorio')
+        ->name('dashboard.solicitud.encuesta.exportar');
     
     // Actions restricted by role
     Route::post('/dashboard/solicitud/{studyRequest}/actualizar', [CeaaStaffController::class, 'update'])

@@ -272,6 +272,11 @@ class CeaaStaffController extends Controller
             ->take(15)
             ->get();
 
+        // 4. All answered surveys for individual export table
+        $answeredSurveys = StudyRequest::where('encuesta_respondida', true)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         return view('dashboard.metrics', compact(
             'totalSurveys',
             'overallAverage',
@@ -284,7 +289,8 @@ class CeaaStaffController extends Controller
             'puntoMuestreoCounts',
             'statusCounts',
             'monthlyCounts',
-            'recentFeedback'
+            'recentFeedback',
+            'answeredSurveys'
         ));
     }
 
@@ -414,6 +420,133 @@ class CeaaStaffController extends Controller
 
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /**
+     * Export survey responses in the official Word format (FC-SG-LCH2O/11).
+     */
+    public function exportAllSurveysWord(Request $request)
+    {
+        $questionFilter = $request->query('pregunta');
+        $selectedQuestion = ($questionFilter && (int) $questionFilter >= 1 && (int) $questionFilter <= 10)
+            ? (int) $questionFilter
+            : null;
+
+        $surveys = StudyRequest::where('encuesta_respondida', true)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $suffix = $selectedQuestion ? "_pregunta_{$selectedQuestion}" : '_completo';
+        $filename = 'encuestas_FC-SG-LCH2O-11' . $suffix . '_' . now()->format('Y-m-d_His') . '.doc';
+
+        $content = view('exports.survey-word', [
+            'surveys' => $surveys,
+            'selectedQuestion' => $selectedQuestion,
+        ])->render();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/msword; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
+    /**
+     * Export a single client's survey in either CSV or official Word format (FC-SG-LCH2O/11).
+     */
+    public function exportSingleSurvey(Request $request, StudyRequest $studyRequest)
+    {
+        if (!$studyRequest->encuesta_respondida) {
+            return back()->withErrors(['survey' => 'Esta solicitud aún no cuenta con una encuesta respondida.']);
+        }
+
+        $format = strtolower($request->query('formato', 'word'));
+
+        if ($format === 'csv') {
+            $questions = [
+                1 => '1. Facilidad para acceder al servicio:',
+                2 => '2. ¿Se le atendió en el tiempo prometido?',
+                3 => '3. ¿Se cumplieron los requerimientos técnicos del servicio?',
+                4 => '4. ¿Usted recibió un trato amable del personal que lo atendió?',
+                5 => '5. ¿Cómo considera la competencia del personal inspector que lo atendió?',
+                6 => '6. ¿Cómo evaluaría la calidad del trabajo realizado durante la inspección?',
+                7 => '7. ¿Los métodos de inspección utilizados son adecuados a sus necesidades?',
+                8 => '8. ¿Cómo calificaría la calidad de la atención recibida?',
+                9 => '9. En general el servicio recibido por el Laboratorio CEAA fue:',
+                10 => '10. ¿Nos recomendaría?',
+            ];
+
+            $filename = 'encuesta_' . $studyRequest->referencia_bancaria . '.csv';
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            return response()->stream(function () use ($studyRequest, $questions) {
+                $handle = fopen('php://output', 'w');
+                fwrite($handle, "\xEF\xBB\xBF");
+
+                fputcsv($handle, ['COMISIÓN ESTATAL DEL AGUA Y ALCANTARILLADO (CEAA)', 'ENCUESTA DE SATISFACCIÓN']);
+                fputcsv($handle, ['Vigente a partir de: 24-03-2025', 'CODIFICACIÓN: FC-SG-LCH2O/11', 'Revisión: 01']);
+                fputcsv($handle, []);
+                fputcsv($handle, ['DATOS DEL CLIENTE']);
+                fputcsv($handle, [
+                    'Nombre del cliente:',
+                    $studyRequest->solicitante . ($studyRequest->representante ? " ({$studyRequest->representante})" : ''),
+                    'Domicilio:',
+                    $studyRequest->direccion,
+                ]);
+                fputcsv($handle, [
+                    'Número de informe:',
+                    $studyRequest->referencia_bancaria,
+                    'Correo electrónico y teléfono:',
+                    $studyRequest->email . ($studyRequest->telefono ? " / {$studyRequest->telefono}" : ''),
+                ]);
+                fputcsv($handle, []);
+                fputcsv($handle, ['CUESTIONARIO']);
+                fputcsv($handle, ['FECHA:', $studyRequest->updated_at ? $studyRequest->updated_at->format('d/m/Y H:i') : '']);
+                fputcsv($handle, [
+                    'Pregunta',
+                    'Excelente (5)',
+                    'Bueno (4)',
+                    'Regular (3)',
+                    'Malo (2)',
+                    'Muy malo (1)',
+                    'Calificación',
+                ]);
+
+                foreach ($questions as $num => $qText) {
+                    $val = (int) $studyRequest->{"encuesta_p{$num}"};
+                    fputcsv($handle, [
+                        $qText,
+                        $val === 5 ? 'X' : '',
+                        $val === 4 ? 'X' : '',
+                        $val === 3 ? 'X' : '',
+                        $val === 2 ? 'X' : '',
+                        $val === 1 ? 'X' : '',
+                        $val,
+                    ]);
+                }
+
+                fputcsv($handle, []);
+                fputcsv($handle, ['Promedio:', number_format($studyRequest->encuesta_promedio, 2)]);
+                fputcsv($handle, ['¿Qué recomendaría para mejorarnos?', $studyRequest->encuesta_mejoras ?? '']);
+                fputcsv($handle, ['Comentarios adicionales:', $studyRequest->encuesta_comentarios ?? '']);
+
+                fclose($handle);
+            }, 200, $headers);
+        }
+
+        // Default: Word format (.doc)
+        $filename = 'encuesta_FC-SG-LCH2O-11_' . $studyRequest->referencia_bancaria . '.doc';
+        $content = view('exports.survey-word', [
+            'surveys' => collect([$studyRequest]),
+            'selectedQuestion' => null,
+        ])->render();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/msword; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     /**
